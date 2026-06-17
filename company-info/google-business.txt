@@ -1,0 +1,7 @@
+Google 商家名稱：待補
+Google 商家網址：待補
+Google Map 嵌入碼：待補
+Google 評論連結：待補
+
+備註：
+取得正式 Google Map 嵌入碼後，可替換網站中的 Google Map 預留區塊。

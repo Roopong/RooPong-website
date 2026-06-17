@@ -1,0 +1,6 @@
+LINE 官方帳號：@514aubig
+LINE 加好友連結：https://manager.line.biz/account/@514aubig
+LINE QR Code 檔案位置：'/Users/brady/Documents/工作項目/六本木研/官網/六本木研官網 V1.0 正式版/Roopong-website/assets/line/LOGO-07_0.png'
+
+備註：
+後續可將 LINE QR Code 放入 assets/logo 或 assets/team 以外的指定資料夾，並更新網站 CTA 連結。
