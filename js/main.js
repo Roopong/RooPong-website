@@ -10,6 +10,7 @@ const lightboxNext = document.querySelector(".lightbox-next");
 const lightboxTriggers = Array.from(document.querySelectorAll(".lightbox-trigger"));
 let lightboxIndex = 0;
 let touchStartX = 0;
+const mobileNavQuery = window.matchMedia("(max-width: 768px)");
 
 function updateHeaderState() {
     if (!header) {
@@ -19,20 +20,38 @@ function updateHeaderState() {
     header.classList.toggle("is-scrolled", window.scrollY > 24);
 }
 
+function closeMobileNav() {
+    if (!siteNav || !navToggle || !mobileNavQuery.matches) {
+        return;
+    }
+
+    siteNav.classList.remove("is-open");
+    navToggle.setAttribute("aria-expanded", "false");
+}
+
 if (navToggle && siteNav) {
-    navToggle.addEventListener("click", () => {
+    navToggle.addEventListener("click", (event) => {
+        event.stopPropagation();
         const isOpen = siteNav.classList.toggle("is-open");
         navToggle.setAttribute("aria-expanded", String(isOpen));
     });
 }
 
 navLinks.forEach((link) => {
-    link.addEventListener("click", () => {
-        if (siteNav && navToggle) {
-            siteNav.classList.remove("is-open");
-            navToggle.setAttribute("aria-expanded", "false");
-        }
-    });
+    link.addEventListener("click", closeMobileNav);
+});
+
+document.addEventListener("click", (event) => {
+    if (!siteNav || !navToggle || !siteNav.classList.contains("is-open")) {
+        return;
+    }
+
+    const target = event.target;
+    if (!(target instanceof Node) || siteNav.contains(target) || navToggle.contains(target)) {
+        return;
+    }
+
+    closeMobileNav();
 });
 
 function resetDesktopNav() {
