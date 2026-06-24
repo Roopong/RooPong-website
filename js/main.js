@@ -7,10 +7,21 @@ const lightboxImage = document.querySelector(".lightbox-image");
 const lightboxClose = document.querySelector(".lightbox-close");
 const lightboxPrev = document.querySelector(".lightbox-prev");
 const lightboxNext = document.querySelector(".lightbox-next");
+const lightboxMeta = document.querySelector(".lightbox-meta");
+const lightboxMetaStep = document.querySelector(".lightbox-meta-step");
+const lightboxMetaTitle = document.querySelector(".lightbox-meta-title");
+const lightboxMetaPhoto = document.querySelector(".lightbox-meta-photo");
+const lightboxMetaCopy = document.querySelector(".lightbox-meta-copy");
 const lightboxTriggers = Array.from(document.querySelectorAll(".lightbox-trigger"));
 let lightboxIndex = 0;
 let touchStartX = 0;
 const mobileNavQuery = window.matchMedia("(max-width: 768px)");
+const protectionSections = {
+    "elevator-lobby": { step: "01", title: "梯廳保護", copy: "施工期間維護梯廳公設完整" },
+    corridor: { step: "02", title: "走道保護", copy: "施工期間維護走道環境整潔" },
+    "interior-route": { step: "03", title: "室內動線", copy: "施工期間維護室內搬運動線" },
+    parking: { step: "04", title: "停車格保護", copy: "施工期間維護停車格與動線" }
+};
 
 function updateHeaderState() {
     if (!header) {
@@ -72,6 +83,31 @@ function showLightboxImage(index) {
     const trigger = lightboxTriggers[lightboxIndex];
     lightboxImage.src = trigger.dataset.lightboxSrc;
     lightboxImage.alt = trigger.dataset.lightboxAlt || "";
+    updateLightboxMeta(trigger);
+}
+
+function updateLightboxMeta(trigger) {
+    if (!lightboxMeta || !lightboxMetaStep || !lightboxMetaTitle || !lightboxMetaPhoto || !lightboxMetaCopy) {
+        return;
+    }
+
+    const imageSource = trigger.dataset.lightboxSrc || "";
+    const sectionKey = Object.keys(protectionSections).find((key) => imageSource.includes(`/protection/${key}/`));
+    const section = sectionKey ? protectionSections[sectionKey] : null;
+
+    if (!section) {
+        lightboxMeta.hidden = true;
+        return;
+    }
+
+    const sectionImages = lightboxTriggers.filter((item) => item.dataset.lightboxSrc?.includes(`/protection/${sectionKey}/`));
+    const sectionImageNumber = sectionImages.indexOf(trigger) + 1;
+
+    lightboxMetaStep.textContent = `${section.step} / ${String(Object.keys(protectionSections).length).padStart(2, "0")}`;
+    lightboxMetaTitle.textContent = section.title;
+    lightboxMetaPhoto.textContent = `${sectionImageNumber} / ${sectionImages.length}`;
+    lightboxMetaCopy.textContent = section.copy;
+    lightboxMeta.hidden = false;
 }
 
 function openLightbox(index) {
