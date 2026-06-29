@@ -204,6 +204,8 @@ lightbox?.addEventListener("touchstart", (event) => {
 
     if (event.touches.length >= 2) {
         isPinchingLightbox = true;
+        touchStartX = null;
+        touchStartY = null;
         return;
     }
 
@@ -221,6 +223,8 @@ lightbox?.addEventListener("touchmove", (event) => {
 
     if (event.touches.length >= 2 || isLightboxZoomed()) {
         isPinchingLightbox = true;
+        touchStartX = null;
+        touchStartY = null;
     }
 });
 
