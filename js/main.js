@@ -74,6 +74,10 @@ function resetDesktopNav() {
     navToggle.setAttribute("aria-expanded", "false");
 }
 
+function getLightboxSource(trigger) {
+    return trigger?.dataset.lightboxSrc || trigger?.querySelector("img")?.getAttribute("src") || "";
+}
+
 function showLightboxImage(index) {
     if (!lightboxImage || !lightboxTriggers.length) {
         return;
@@ -81,7 +85,7 @@ function showLightboxImage(index) {
 
     lightboxIndex = (index + lightboxTriggers.length) % lightboxTriggers.length;
     const trigger = lightboxTriggers[lightboxIndex];
-    lightboxImage.src = trigger.dataset.lightboxSrc;
+    lightboxImage.src = getLightboxSource(trigger);
     lightboxImage.alt = trigger.dataset.lightboxAlt || "";
     updateLightboxMeta(trigger);
 }
@@ -138,8 +142,19 @@ function showNextLightboxImage() {
     showLightboxImage(lightboxIndex + 1);
 }
 
-lightboxTriggers.forEach((trigger, index) => {
-    trigger.addEventListener("click", () => openLightbox(index));
+lightboxTriggers.forEach((trigger) => {
+    trigger.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const clickedTrigger = event.currentTarget;
+        const clickedIndex = lightboxTriggers.indexOf(clickedTrigger);
+        if (clickedIndex < 0) {
+            return;
+        }
+
+        openLightbox(clickedIndex);
+    });
 });
 
 lightboxClose?.addEventListener("click", closeLightbox);
