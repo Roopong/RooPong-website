@@ -14,7 +14,12 @@ const lightboxMetaPhoto = document.querySelector(".lightbox-meta-photo");
 const lightboxMetaCopy = document.querySelector(".lightbox-meta-copy");
 const lightboxTriggers = Array.from(document.querySelectorAll(".lightbox-trigger"));
 let lightboxIndex = 0;
-let touchStartX = 0;
+let touchStartX = null;
+let touchStartY = null;
+let isPinchingLightbox = false;
+let lightboxTouchResetTimer = null;
+let lightboxMaxTouchPoints = 0;
+let lastLightboxPinchEndedAt = 0;
 const mobileNavQuery = window.matchMedia("(max-width: 768px)");
 const protectionSections = {
     "elevator-lobby": { step: "01", title: "梯廳保護", copy: "施工期間維護梯廳公設完整" },
@@ -90,6 +95,31 @@ function showLightboxImage(index) {
     updateLightboxMeta(trigger);
 }
 
+function isLightboxZoomed() {
+    return Boolean(window.visualViewport && (
+        window.visualViewport.scale > 1.01 ||
+        window.visualViewport.offsetLeft > 1 ||
+        window.visualViewport.offsetTop > 1
+    ));
+}
+
+function isRecentlyPinchingLightbox() {
+    return Date.now() - lastLightboxPinchEndedAt < 520;
+}
+
+function resetLightboxTouchState() {
+    isPinchingLightbox = false;
+    touchStartX = null;
+    touchStartY = null;
+    lightboxMaxTouchPoints = 0;
+}
+
+function scheduleLightboxTouchReset() {
+    window.clearTimeout(lightboxTouchResetTimer);
+    lastLightboxPinchEndedAt = Date.now();
+    lightboxTouchResetTimer = window.setTimeout(resetLightboxTouchState, 520);
+}
+
 function updateLightboxMeta(trigger) {
     if (!lightboxMeta || !lightboxMetaStep || !lightboxMetaTitle || !lightboxMetaPhoto || !lightboxMetaCopy) {
         return;
@@ -132,6 +162,7 @@ function closeLightbox() {
 
     lightbox.classList.remove("is-open");
     lightbox.setAttribute("aria-hidden", "true");
+    resetLightboxTouchState();
 }
 
 function showPrevLightboxImage() {
@@ -168,24 +199,85 @@ lightbox?.addEventListener("click", (event) => {
 });
 
 lightbox?.addEventListener("touchstart", (event) => {
-    touchStartX = event.changedTouches[0].clientX;
-});
+    window.clearTimeout(lightboxTouchResetTimer);
+    lightboxMaxTouchPoints = Math.max(lightboxMaxTouchPoints, event.touches.length);
 
-lightbox?.addEventListener("touchend", (event) => {
-    const touchEndX = event.changedTouches[0].clientX;
-    const swipeDistance = touchEndX - touchStartX;
-
-    if (Math.abs(swipeDistance) < 48) {
+    if (event.touches.length >= 2) {
+        isPinchingLightbox = true;
         return;
     }
 
-    if (swipeDistance > 0) {
+    if (isRecentlyPinchingLightbox() || isLightboxZoomed() || event.touches.length !== 1) {
+        resetLightboxTouchState();
+        return;
+    }
+
+    touchStartX = event.touches[0].clientX;
+    touchStartY = event.touches[0].clientY;
+});
+
+lightbox?.addEventListener("touchmove", (event) => {
+    lightboxMaxTouchPoints = Math.max(lightboxMaxTouchPoints, event.touches.length);
+
+    if (event.touches.length >= 2 || isLightboxZoomed()) {
+        isPinchingLightbox = true;
+    }
+});
+
+lightbox?.addEventListener("touchend", (event) => {
+    lightboxMaxTouchPoints = Math.max(lightboxMaxTouchPoints, event.touches.length, event.changedTouches.length);
+
+    if (isPinchingLightbox || lightboxMaxTouchPoints >= 2 || isRecentlyPinchingLightbox() || event.touches.length > 0 || isLightboxZoomed()) {
+        if (event.touches.length === 0) {
+            scheduleLightboxTouchReset();
+        }
+        return;
+    }
+
+    if (touchStartX === null || touchStartY === null || event.changedTouches.length !== 1) {
+        resetLightboxTouchState();
+        return;
+    }
+
+    const touchEndX = event.changedTouches[0].clientX;
+    const touchEndY = event.changedTouches[0].clientY;
+    const swipeDistanceX = touchEndX - touchStartX;
+    const swipeDistanceY = touchEndY - touchStartY;
+
+    resetLightboxTouchState();
+
+    if (Math.abs(swipeDistanceX) < 50 || Math.abs(swipeDistanceY) > 40) {
+        return;
+    }
+
+    if (swipeDistanceX > 0) {
         showPrevLightboxImage();
         return;
     }
 
     showNextLightboxImage();
 });
+
+lightbox?.addEventListener("touchcancel", () => {
+    if (isPinchingLightbox || lightboxMaxTouchPoints >= 2) {
+        lastLightboxPinchEndedAt = Date.now();
+    }
+
+    resetLightboxTouchState();
+});
+
+lightbox?.addEventListener("gesturestart", () => {
+    window.clearTimeout(lightboxTouchResetTimer);
+    isPinchingLightbox = true;
+    lightboxMaxTouchPoints = 2;
+});
+
+lightbox?.addEventListener("gesturechange", () => {
+    isPinchingLightbox = true;
+    lightboxMaxTouchPoints = 2;
+});
+
+lightbox?.addEventListener("gestureend", scheduleLightboxTouchReset);
 
 document.addEventListener("keydown", (event) => {
     if (!lightbox?.classList.contains("is-open")) {
