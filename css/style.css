@@ -325,7 +325,7 @@ a {
 .cta-inner p,
 .contact-card dd,
 .line-card p,
-.map-placeholder p,
+.service-location p,
 .site-footer p {
     color: var(--muted);
 }
@@ -1308,25 +1308,37 @@ a {
     border-radius: 4px;
 }
 
-.map-placeholder {
+.service-location {
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
+    gap: 42px;
     min-height: 320px;
     max-width: 1180px;
     margin: 24px auto 0;
+    padding: 42px;
     border: 1px solid var(--line);
     background:
         linear-gradient(135deg, rgba(200, 169, 107, 0.1), rgba(255, 255, 255, 0.02)),
         repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 18px);
-    text-align: center;
 }
 
-.map-placeholder span {
+.service-location h3 {
     color: var(--gold-light);
     font-size: 28px;
+    line-height: 1.3;
     font-weight: 800;
+}
+
+.service-location-copy {
+    display: grid;
+    gap: 18px;
+    max-width: 680px;
+}
+
+.service-location-copy p {
+    font-size: 18px;
+    line-height: 1.9;
 }
 
 /* ===== Footer ===== */
@@ -1612,11 +1624,14 @@ a {
         width: 100%;
     }
 
-    .map-placeholder {
+    .service-location {
+        flex-direction: column;
+        gap: 20px;
         min-height: 240px;
+        padding: 30px 24px;
     }
 
-    .map-placeholder span {
+    .service-location h3 {
         font-size: 23px;
     }
 
